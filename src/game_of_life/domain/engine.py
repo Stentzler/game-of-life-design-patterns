@@ -1,8 +1,10 @@
+from game_of_life.domain.events import GameEvent, GameEventType
 from game_of_life.domain.grid import Grid
+from game_of_life.observers.base import Observer, Subject
 from game_of_life.strategies.base import EvolutionStrategy
 
 
-class GameEngine:
+class GameEngine(Subject[GameEvent]):
     """Coordinate the domain rules of the Game of Life simulation.
 
     `GameEngine` is part of the domain/model layer. It does not know anything
@@ -12,9 +14,11 @@ class GameEngine:
 
     - keep a reference to the current `Grid`;
     - keep a reference to the selected `EvolutionStrategy`;
+    - keep a list of attached observers;
     - ask the strategy to calculate the next generation;
     - apply the calculated generation back into the grid;
     - count how many generations have been applied.
+    - publish events after important simulation changes.
 
     Study note:
         The engine does not create the grid by itself. A `Grid` is passed into
@@ -31,9 +35,9 @@ class GameEngine:
         with any object that follows the `EvolutionStrategy` contract.
 
     Observer note:
-        Later, when we implement the Observer pattern, this class will also
-        notify observers after important domain events. We are not adding that
-        yet because the event object and observer interface do not exist.
+        `GameEngine` is the concrete Subject in the Observer pattern. It knows
+        only the `Observer[GameEvent]` interface, not concrete classes such as
+        `SimulationSummaryObserver` or `ConsoleLoggingObserver`.
     """
 
     def __init__(self, grid: Grid, strategy: EvolutionStrategy):
@@ -57,6 +61,51 @@ class GameEngine:
         self.grid = grid
         self.strategy = strategy
         self.generation = 0
+        self._observers: list[Observer[GameEvent]] = []
+
+    def attach(self, observer: Observer[GameEvent]) -> None:
+        """Register an observer to receive engine events.
+
+        Args:
+            observer: Object that implements `Observer[GameEvent]`.
+
+        Study note:
+            This is the subscription method from the Observer pattern. The
+            engine stores the observer but does not care what concrete class it
+            is. It may be a summary holder, logger, history tracker, or a future
+            observer we have not written yet.
+        """
+        if observer not in self._observers:
+            self._observers.append(observer)
+
+    def detach(self, observer: Observer[GameEvent]) -> None:
+        """Unregister an observer from future engine events.
+
+        Args:
+            observer: Previously attached observer.
+
+        Study note:
+            Detaching matters because the subject keeps references to observers.
+            If an observer should no longer react, it should be removed from the
+            subject's observer list.
+        """
+        if observer in self._observers:
+            self._observers.remove(observer)
+
+    def notify(self, event: GameEvent) -> None:
+        """Send an event to every attached observer.
+
+        Args:
+            event: Snapshot describing what happened in the engine.
+
+        Study note:
+            This method is the core notification loop of the Observer pattern.
+            Notice that it calls the same `update(event)` method on every
+            observer. The engine does not need `if observer is summary` or `if
+            observer is logger` branches.
+        """
+        for observer in self._observers:
+            observer.update(event)
 
     def next_generation(self) -> None:
         """Advance the simulation by one generation.
@@ -76,6 +125,7 @@ class GameEngine:
         next_cells = self.strategy.calculate_next_state(self.grid)
         self.grid.replace_cells(next_cells)
         self.generation += 1
+        self.notify(self._create_event(GameEventType.GENERATION_ADVANCED))
 
     def replace_strategy(self, strategy: EvolutionStrategy) -> None:
         """Replace the evolution strategy used by the engine.
@@ -92,3 +142,29 @@ class GameEngine:
             contract: callers should pass a valid `EvolutionStrategy`.
         """
         self.strategy = strategy
+        self.notify(self._create_event(GameEventType.STRATEGY_REPLACED))
+
+    def _create_event(self, event_type: GameEventType) -> GameEvent:
+        """Create a `GameEvent` snapshot from the current engine state.
+
+        Args:
+            event_type: The reason this event is being published.
+
+        Returns:
+            A frozen event object containing generation, cell counts, and the
+            active strategy name.
+
+        Study note:
+            Keeping event creation in one helper avoids repeating summary
+            calculations in every engine method that needs to notify observers.
+        """
+        living_cells = int(self.grid.cells.sum())
+        total_cells = self.grid.width * self.grid.height
+
+        return GameEvent(
+            event_type=event_type,
+            generation=self.generation,
+            living_cells=living_cells,
+            dead_cells=total_cells - living_cells,
+            strategy_name=self.strategy.__class__.__name__,
+        )

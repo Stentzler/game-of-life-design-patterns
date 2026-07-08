@@ -1,20 +1,42 @@
 ```mermaid
 classDiagram
-    class GameEngine {
+    class Subject {
+        <<interface>>
+        +attach(observer)
+        +detach(observer)
+        +notify(event)
     }
 
-    class GameObserver {
+    class Observer {
         <<interface>>
         +update(event)
     }
 
-    class StatisticsObserver {
+    class GameEngine {
+        -observers
+        +attach(observer)
+        +detach(observer)
+        +notify(event)
     }
 
-    class ConsoleLogObserver {
+    class GameEvent {
+        +event_type
+        +generation
+        +living_cells
+        +dead_cells
+        +strategy_name
     }
 
-    GameEngine --> GameObserver : notifies
-    GameObserver <|-- StatisticsObserver : implements
-    GameObserver <|-- ConsoleLogObserver : implements
+    class SimulationSummaryObserver {
+    }
+
+    class ConsoleLoggingObserver {
+    }
+
+    Subject <|-- GameEngine : implements
+    Observer <|-- SimulationSummaryObserver : implements
+    Observer <|-- ConsoleLoggingObserver : implements
+    GameEngine --> Observer : notifies
+    GameEngine --> GameEvent : creates
+    Observer --> GameEvent : receives
 ```

@@ -44,8 +44,8 @@ and update behavior to the current `SimulationState`.
 
 The domain layer will publish events when the simulation changes.
 
-Observers such as `StatisticsObserver` and `ConsoleLoggingObserver` can react to
-those events without forcing `GameEngine` to know about statistics screens,
+Observers such as `SimulationSummaryObserver` and `ConsoleLoggingObserver` can
+react to those events without forcing `GameEngine` to know about summary views,
 logging, or future features.
 
 ## Project Structure
@@ -61,7 +61,7 @@ src/game_of_life/
 ├── observers/
 │   ├── base.py
 │   ├── console_logger.py
-│   └── statistics.py
+│   └── simulation_summary.py
 ├── pygame_ui/
 │   ├── controller.py
 │   └── renderer.py

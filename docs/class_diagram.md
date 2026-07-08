@@ -16,8 +16,9 @@ classDiagram
         -generation
         -observers
         +next_generation()
-        +set_strategy()
-        +add_observer()
+        +replace_strategy()
+        +attach()
+        +detach()
         +notify()
     }
 
