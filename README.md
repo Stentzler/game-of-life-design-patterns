@@ -70,6 +70,27 @@ current_state.update(app, delta_time)
 
 This avoids spreading `if mode == ...` checks across the application.
 
+### Factory
+
+The state objects use a small factory to create the next concrete state:
+
+- `StateFactory`
+- `SimulationStateFactory`
+
+The transition decision still belongs to the current state. For example,
+`EditingState` decides that `START` should move to `RunningState`. The factory
+only centralizes object creation:
+
+```python
+next_state = context.state_factory.create_running(
+    evolution_interval=context.evolution_interval
+)
+context.change_state(next_state)
+```
+
+This avoids direct imports between concrete state classes while keeping the
+State pattern easy to read.
+
 ## Project Structure
 
 ```text
@@ -90,6 +111,7 @@ src/game_of_life/
 ├── states/
 │   ├── base.py
 │   ├── editing.py
+│   ├── factory.py
 │   ├── paused.py
 │   └── running.py
 └── strategies/
@@ -124,6 +146,12 @@ Development dependency:
 
 - `pytest`
 
+If you use `uv`, install the project with:
+
+```bash
+uv sync
+```
+
 ## Run
 
 After installing the project:
@@ -138,6 +166,34 @@ Without installing the project, use:
 PYTHONPATH=src python -m game_of_life.app
 ```
 
+With `uv`, use:
+
+```bash
+uv run python -m game_of_life.app
+```
+
+## Run With Docker
+
+Build the image:
+
+```bash
+docker build -t game-of-life-patterns .
+```
+
+Run the Pygame application with Linux/X11 display forwarding:
+
+```bash
+xhost +local:docker
+docker run --rm -it \
+  -e DISPLAY=$DISPLAY \
+  -v /tmp/.X11-unix:/tmp/.X11-unix \
+  game-of-life-patterns
+```
+
+Pygame opens a real window, so the container needs access to your host display.
+If your desktop uses Wayland, this usually still works through XWayland when
+`DISPLAY` is available.
+
 ## Controls
 
 Editing mode:
@@ -147,6 +203,7 @@ Editing mode:
 - `Next`: advance one generation manually.
 - `Random`: randomize the grid.
 - `Clear`: clear all cells.
+- `Use HighLife` / `Use Conway`: switch the evolution strategy.
 
 Running mode:
 
@@ -165,9 +222,11 @@ Run the real test suite:
 pytest
 ```
 
+With `uv`:
+
+```bash
+uv run pytest
+```
+
 The root-level `test_*.py` files are manual learning playgrounds. They print
 step-by-step examples and can be deleted later.
-
-## Implementation Notes
-
-The implementation plan is tracked in [implementation.md](implementation.md).
