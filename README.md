@@ -51,6 +51,14 @@ Current subscribers:
 The engine only knows the `Subscriber[GameEvent]` interface, not concrete
 subscriber classes.
 
+`GameOfLifeApp` does not depend on `SimulationSummarySubscriber` directly. It
+depends on the read-only `SimulationSummary` protocol, because the app only
+needs summary values for rendering. The same concrete object can therefore play
+two roles:
+
+- as a `Subscriber[GameEvent]`, it receives engine events;
+- as a `SimulationSummary`, it exposes current summary values to the app.
+
 ### State
 
 `GameOfLifeApp` owns the current `SimulationState`.

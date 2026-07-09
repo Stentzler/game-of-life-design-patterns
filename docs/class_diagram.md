@@ -96,12 +96,20 @@ classDiagram
         +strategy_name
     }
 
+    class SimulationSummary {
+        <<interface>>
+        +generation
+        +living_cells
+        +dead_cells
+        +living_percentage
+    }
+
     class SimulationSummarySubscriber
     class ConsoleLoggingSubscriber
 
     GameOfLifeApp --> GameEngine : owns
     GameOfLifeApp --> SimulationState : current state
-    GameOfLifeApp --> SimulationSummarySubscriber : reads summary
+    GameOfLifeApp --> SimulationSummary : reads summary
     GameOfLifeApp --> InputController : uses in run()
     GameOfLifeApp --> PygameRenderer : uses in run()
 
@@ -124,5 +132,6 @@ classDiagram
 
     Subscriber <|-- SimulationSummarySubscriber : implements
     Subscriber <|-- ConsoleLoggingSubscriber : implements
+    SimulationSummary <|-- SimulationSummarySubscriber : implements
     Subscriber --> GameEvent : receives
 ```

@@ -1,5 +1,26 @@
+from typing import Protocol
+
 from game_of_life.domain.events import GameEvent
 from game_of_life.observers.base import Subscriber
+
+
+class SimulationSummary(Protocol):
+    """Describe the read side of the current simulation summary.
+
+    `GameOfLifeApp` and the renderer only need to read summary values. They do
+    not need to know that the concrete object is also a subscriber.
+
+    Study note:
+        This protocol applies the Dependency Inversion Principle. The app can
+        depend on the small summary interface it needs, while the engine still
+        depends on the separate `Subscriber[GameEvent]` interface used for event
+        publication.
+    """
+
+    generation: int
+    living_cells: int
+    dead_cells: int
+    living_percentage: float
 
 
 class SimulationSummarySubscriber(Subscriber[GameEvent]):

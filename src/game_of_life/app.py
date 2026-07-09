@@ -3,7 +3,11 @@ import logging
 from game_of_life import config
 from game_of_life.domain.engine import GameEngine
 from game_of_life.domain.grid import Grid
-from game_of_life.observers import ConsoleLoggingSubscriber, SimulationSummarySubscriber
+from game_of_life.observers import (
+    ConsoleLoggingSubscriber,
+    SimulationSummary,
+    SimulationSummarySubscriber,
+)
 from game_of_life.states.base import (
     SimulationAction,
     SimulationCommand,
@@ -39,7 +43,7 @@ class GameOfLifeApp:
         initial_state: SimulationState | None = None,
         evolution_interval: float = config.EVOLUTION_INTERVAL,
         random_alive_probability: float = config.RANDOM_ALIVE_PROBABILITY,
-        summary: SimulationSummarySubscriber | None = None,
+        summary: SimulationSummary | None = None,
         state_factory: StateFactory | None = None,
         available_strategies: list[EvolutionStrategy] | None = None,
     ):
@@ -52,8 +56,7 @@ class GameOfLifeApp:
                 starts in `EditingState`.
             evolution_interval: Seconds between generations while running.
             random_alive_probability: Probability used by the randomize button.
-            summary: Optional subscriber that stores the latest simulation
-                summary for the renderer.
+            summary: Optional read-side summary used by the renderer.
             state_factory: Optional factory used to create concrete application
                 states. If omitted, the default `SimulationStateFactory` is used.
             available_strategies: Ordered strategy objects available to the
@@ -65,6 +68,10 @@ class GameOfLifeApp:
             owns application mode and the list of selectable strategies. Keeping
             those responsibilities separate makes the design easier to reason
             about.
+
+            The app depends on the `SimulationSummary` protocol, not on
+            `SimulationSummarySubscriber`. The concrete subscriber is only
+            needed by the composition root when it subscribes to engine events.
         """
         self.engine = engine
         self.summary = summary
