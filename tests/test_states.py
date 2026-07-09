@@ -14,6 +14,10 @@ from game_of_life.strategies import ConwayEvolutionStrategy, HighLifeEvolutionSt
 
 
 def create_app(evolution_interval: float = 1.0) -> GameOfLifeApp:
+    available_strategies = [
+        ConwayEvolutionStrategy(),
+        HighLifeEvolutionStrategy(),
+    ]
     engine = GameEngine(
         grid=Grid(
             width=5,
@@ -28,9 +32,13 @@ def create_app(evolution_interval: float = 1.0) -> GameOfLifeApp:
                 ]
             ),
         ),
-        strategy=ConwayEvolutionStrategy(),
+        strategy=available_strategies[0],
     )
-    return GameOfLifeApp(engine=engine, evolution_interval=evolution_interval)
+    return GameOfLifeApp(
+        engine=engine,
+        available_strategies=available_strategies,
+        evolution_interval=evolution_interval,
+    )
 
 
 def test_app_starts_in_editing_state() -> None:

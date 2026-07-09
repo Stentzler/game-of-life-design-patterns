@@ -40,18 +40,20 @@ class GameOfLifeApp:
     def __init__(
         self,
         engine: GameEngine,
+        available_strategies: list[EvolutionStrategy],
         initial_state: SimulationState | None = None,
         evolution_interval: float = config.EVOLUTION_INTERVAL,
         random_alive_probability: float = config.RANDOM_ALIVE_PROBABILITY,
         summary: SimulationSummary | None = None,
         state_factory: StateFactory | None = None,
-        available_strategies: list[EvolutionStrategy] | None = None,
     ):
         """Create an application context.
 
         Args:
             engine: Domain engine used by states when generations need to
                 advance or cells need to be edited.
+            available_strategies: Ordered strategy objects available to the
+                Strategy switch button.
             initial_state: Optional starting state. If omitted, the application
                 starts in `EditingState`.
             evolution_interval: Seconds between generations while running.
@@ -59,15 +61,16 @@ class GameOfLifeApp:
             summary: Optional read-side summary used by the renderer.
             state_factory: Optional factory used to create concrete application
                 states. If omitted, the default `SimulationStateFactory` is used.
-            available_strategies: Ordered strategy objects available to the
-                Strategy switch button. If omitted, Conway and HighLife are
-                available.
 
         Study note:
             The engine still owns simulation rules and grid updates. The app
             owns application mode and the list of selectable strategies. Keeping
             those responsibilities separate makes the design easier to reason
             about.
+
+            The app receives `available_strategies` instead of creating default
+            strategies internally. That keeps strategy selection configured in
+            one place: the composition root that builds the application.
 
             The app depends on the `SimulationSummary` protocol, not on
             `SimulationSummarySubscriber`. The concrete subscriber is only
@@ -79,10 +82,8 @@ class GameOfLifeApp:
         self.evolution_interval = evolution_interval
         self.random_alive_probability = random_alive_probability
         self.state_factory = state_factory or SimulationStateFactory()
-        self.available_strategies = (
-            available_strategies or self._create_default_strategies()
-        )
         self.current_state = initial_state or self.state_factory.create_editing()
+        self.available_strategies = available_strategies
 
     def handle_event(self, command: SimulationCommand) -> None:
         """Delegate one command to the current state.
@@ -160,13 +161,6 @@ class GameOfLifeApp:
     def _strategy_name(self, strategy: EvolutionStrategy) -> str:
         """Return the UI-friendly name for a strategy object."""
         return strategy.__class__.__name__.replace("EvolutionStrategy", "")
-
-    def _create_default_strategies(self) -> list[EvolutionStrategy]:
-        """Create the default strategy list available in the UI."""
-        return [
-            ConwayEvolutionStrategy(),
-            HighLifeEvolutionStrategy(),
-        ]
 
     def stop(self) -> None:
         """Mark the application as no longer running."""
