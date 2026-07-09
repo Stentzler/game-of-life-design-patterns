@@ -156,6 +156,34 @@ src/game_of_life/
 - [Publisher/subscriber diagram](docs/publisher_subscriber_diagram.md)
 - [State diagram](docs/state_diagram.md)
 
+## Configuration
+
+Runtime configuration lives in `src/game_of_life/config.py`. This file groups
+the values that control window size, grid size, simulation speed, logging, and
+colors.
+
+Main values:
+
+| Variable | Purpose |
+| --- | --- |
+| `SCREEN_WIDTH` | Width of the Pygame window in pixels. |
+| `TOOLBAR_HEIGHT` | Height of the bottom toolbar area. |
+| `GRID_COLUMNS` | Number of columns in the Game of Life grid. |
+| `GRID_ROWS` | Number of rows in the Game of Life grid. |
+| `CELL_SIZE` | Size of each rendered cell in pixels. |
+| `GRID_WIDTH` | Derived grid width: `GRID_COLUMNS * CELL_SIZE`. |
+| `GRID_HEIGHT` | Derived grid height: `GRID_ROWS * CELL_SIZE`. |
+| `SCREEN_HEIGHT` | Derived window height: `GRID_HEIGHT + TOOLBAR_HEIGHT`. |
+| `FPS` | Maximum frames per second for the Pygame loop. |
+| `EVOLUTION_INTERVAL` | Seconds between automatic generations while running. |
+| `RANDOM_ALIVE_PROBABILITY` | Probability used when randomizing the grid. |
+| `LOG_LEVEL` | Python logging level used by the application. |
+| Color constants | RGB values used by the renderer. |
+
+For example, to make the simulation evolve more slowly, increase
+`EVOLUTION_INTERVAL`. To make the board larger, increase `GRID_COLUMNS` or
+`GRID_ROWS`.
+
 ## Install
 
 This project targets Python 3.12. The package metadata restricts Python to
