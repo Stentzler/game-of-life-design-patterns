@@ -57,4 +57,8 @@ Thumbs.db
 .uv-cache/
 
 implementation.md
-test*
+/test_engine.py
+/test_grid.py
+/test_observer.py
+/test_state.py
+/test_strategy.py

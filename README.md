@@ -20,6 +20,28 @@ The project follows a simple Model-View-Controller-style structure:
 The key rule is that Pygame stays in the UI layer. Domain classes such as
 `Grid`, `GameEngine`, and the strategies do not import Pygame.
 
+## High-Level Flow
+
+![Game of Life architecture flow](docs/GoL_flow.png)
+
+The runtime flow is intentionally split into input, update, event publication,
+and rendering:
+
+```text
+Pygame event
+-> InputController
+-> SimulationCommand
+-> GameOfLifeApp
+-> current SimulationState
+-> GameEngine
+-> Grid / EvolutionStrategy
+-> GameEvent
+-> Subscribers
+```
+
+The renderer is separate from the domain flow. It reads the current app state,
+engine grid, and summary values, then draws the frame with Pygame.
+
 ## Design Patterns
 
 ### Strategy
@@ -131,16 +153,20 @@ src/game_of_life/
 ## Diagrams
 
 - [Class diagram](docs/class_diagram.md)
-- [Publisher/subscriber diagram](docs/observer_diagram.md)
+- [Publisher/subscriber diagram](docs/publisher_subscriber_diagram.md)
 - [State diagram](docs/state_diagram.md)
 
 ## Install
+
+This project targets Python 3.12. The package metadata restricts Python to
+`>=3.12,<3.13` because Pygame wheel support can vary across newer Python
+versions.
 
 Create and activate a virtual environment, then install the project in editable
 mode:
 
 ```bash
-python -m venv .venv
+python3.12 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e ".[dev]"
 ```
@@ -238,3 +264,13 @@ uv run pytest
 
 The root-level `test_*.py` files are manual learning playgrounds. They print
 step-by-step examples and can be deleted later.
+
+## Study Notes
+
+This is a study repository. Some choices are intentionally pattern-focused so
+the Strategy, State, Publisher/Subscriber, and Factory patterns are easier to
+see in code.
+
+The implementation is not meant to be a perfect or definitive architecture for
+Game of Life. The same problem could be solved with different patterns,
+different boundaries, or a smaller design depending on the goal.
