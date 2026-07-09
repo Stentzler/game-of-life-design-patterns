@@ -28,6 +28,7 @@ class SimulationAction(Enum):
     NEXT_GENERATION = "next_generation"
     CLEAR_GRID = "clear_grid"
     RANDOMIZE_GRID = "randomize_grid"
+    SWITCH_STRATEGY = "switch_strategy"
 
 
 @dataclass(frozen=True)
@@ -49,6 +50,29 @@ class SimulationCommand:
     x: int | None = None
     y: int | None = None
 
+
+class StateFactory(Protocol):
+    """Describe how concrete simulation states are created.
+
+    This protocol is the small interface used by concrete states when they need
+    to transition to another mode.
+
+    Study note:
+        This introduces the Factory pattern without coupling the State classes
+        to each other. A state still decides *which* state comes next, but the
+        factory decides *how* that next state object is built.
+    """
+
+    def create_editing(self) -> SimulationState:
+        """Create the editable simulation state."""
+
+    def create_running(self, evolution_interval: float) -> SimulationState:
+        """Create the running simulation state."""
+
+    def create_paused(self) -> SimulationState:
+        """Create the paused simulation state."""
+
+
 class StateContext(Protocol):
     """Describe what states need from the application context.
 
@@ -57,6 +81,7 @@ class StateContext(Protocol):
 
     - access to the domain engine;
     - access to the configured evolution interval;
+    - access to a state factory;
     - a way to replace the current state.
 
     Study note:
@@ -68,9 +93,14 @@ class StateContext(Protocol):
     engine: GameEngine
     evolution_interval: float
     random_alive_probability: float
+    state_factory: StateFactory
 
     def change_state(self, state: SimulationState) -> None:
         """Replace the current state."""
+
+    def switch_to_next_strategy(self) -> None:
+        """Replace the engine strategy with the next available strategy."""
+
 
 class SimulationState(ABC):
     """Define the interface for application modes.

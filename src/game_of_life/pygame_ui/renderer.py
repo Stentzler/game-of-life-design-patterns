@@ -144,6 +144,7 @@ class PygameRenderer:
 
         lines = [
             f"State: {state_name}",
+            f"Strategy: {app.current_strategy_name}",
             f"Generation: {app.engine.generation}",
             f"Living: {living_cells}",
             f"Dead: {dead_cells}",
@@ -151,12 +152,12 @@ class PygameRenderer:
         ]
 
         x = 500
-        y = config.GRID_HEIGHT + 12
+        y = config.GRID_HEIGHT + 10
 
         for line in lines:
             text = self.small_font.render(line, True, config.WHITE)
             self.screen.blit(text, (x, y))
-            y += 18
+            y += 15
 
     def _build_buttons(self, app: GameOfLifeApp) -> list[Button]:
         """Build the visible buttons for the current state."""
@@ -187,6 +188,7 @@ class PygameRenderer:
                 ("Next", SimulationAction.NEXT_GENERATION),
                 ("Random", SimulationAction.RANDOMIZE_GRID),
                 ("Clear", SimulationAction.CLEAR_GRID),
+                ("Strategy", SimulationAction.SWITCH_STRATEGY),
             ]
 
         if isinstance(app.current_state, RunningState):

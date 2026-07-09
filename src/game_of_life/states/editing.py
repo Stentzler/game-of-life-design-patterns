@@ -30,14 +30,15 @@ class EditingState(SimulationState):
         - `NEXT_GENERATION`: advance exactly one generation manually.
         - `CLEAR_GRID`: remove all living cells;
         - `RANDOMIZE_GRID`: fill the board with random living cells.
+        - `SWITCH_STRATEGY`: replace the evolution rule used by the engine.
 
         Other commands are ignored because they do not make sense while editing.
         """
         if command.action == SimulationAction.START:
-            # Local import avoids circular imports between concrete states.
-            from game_of_life.states.running import RunningState
-
-            context.change_state(RunningState(evolution_interval=context.evolution_interval))
+            next_state = context.state_factory.create_running(
+                evolution_interval=context.evolution_interval
+            )
+            context.change_state(next_state)
             return
 
         if command.action == SimulationAction.TOGGLE_CELL:
@@ -54,6 +55,10 @@ class EditingState(SimulationState):
 
         if command.action == SimulationAction.RANDOMIZE_GRID:
             context.engine.randomize_grid(context.random_alive_probability)
+            return
+
+        if command.action == SimulationAction.SWITCH_STRATEGY:
+            context.switch_to_next_strategy()
 
     def update(self, context: StateContext, delta_time: float) -> None:
         """Do nothing while editing.

@@ -8,9 +8,14 @@ from game_of_life.states.base import (
     SimulationAction,
     SimulationCommand,
     SimulationState,
+    StateFactory,
 )
-from game_of_life.states.editing import EditingState
-from game_of_life.strategies import ConwayEvolutionStrategy
+from game_of_life.states.factory import SimulationStateFactory
+from game_of_life.strategies import (
+    ConwayEvolutionStrategy,
+    EvolutionStrategy,
+    HighLifeEvolutionStrategy,
+)
 
 
 class GameOfLifeApp:
@@ -35,6 +40,8 @@ class GameOfLifeApp:
         evolution_interval: float = config.EVOLUTION_INTERVAL,
         random_alive_probability: float = config.RANDOM_ALIVE_PROBABILITY,
         summary: SimulationSummaryObserver | None = None,
+        state_factory: StateFactory | None = None,
+        available_strategies: list[EvolutionStrategy] | None = None,
     ):
         """Create an application context.
 
@@ -47,18 +54,28 @@ class GameOfLifeApp:
             random_alive_probability: Probability used by the randomize button.
             summary: Optional observer that stores the latest simulation summary
                 for the renderer.
+            state_factory: Optional factory used to create concrete application
+                states. If omitted, the default `SimulationStateFactory` is used.
+            available_strategies: Ordered strategy objects available to the
+                Strategy switch button. If omitted, Conway and HighLife are
+                available.
 
         Study note:
             The engine still owns simulation rules and grid updates. The app
-            owns application mode. Keeping those responsibilities separate makes
-            the design easier to reason about.
+            owns application mode and the list of selectable strategies. Keeping
+            those responsibilities separate makes the design easier to reason
+            about.
         """
         self.engine = engine
-        self.current_state = initial_state or EditingState()
-        self.evolution_interval = evolution_interval
-        self.random_alive_probability = random_alive_probability
         self.summary = summary
         self.is_running = True
+        self.evolution_interval = evolution_interval
+        self.random_alive_probability = random_alive_probability
+        self.state_factory = state_factory or SimulationStateFactory()
+        self.available_strategies = (
+            available_strategies or self._create_default_strategies()
+        )
+        self.current_state = initial_state or self.state_factory.create_editing()
 
     def handle_event(self, command: SimulationCommand) -> None:
         """Delegate one command to the current state.
@@ -85,6 +102,52 @@ class GameOfLifeApp:
                 ticks.
         """
         self.current_state = state
+
+    def switch_to_next_strategy(self) -> None:
+        """Replace the engine strategy with the next available strategy.
+
+        This method is called by `EditingState`, because editing mode decides
+        that strategy switching is allowed. The app owns the available strategy
+        list, and the engine only receives the selected strategy through
+        `replace_strategy(...)`.
+
+        Study note:
+            This keeps the Strategy pattern boundary clear:
+
+            - `GameOfLifeApp` knows which strategies are available;
+            - `EditingState` knows when switching is allowed;
+            - `GameEngine` only knows how to replace its current strategy.
+        """
+        current_index = self._current_strategy_index()
+        next_index = (current_index + 1) % len(self.available_strategies)
+        self.engine.replace_strategy(self.available_strategies[next_index])
+
+    @property
+    def current_strategy_name(self) -> str:
+        """Return a readable name for the active evolution strategy."""
+        return self.engine.strategy.__class__.__name__.replace("EvolutionStrategy", "")
+
+    def _current_strategy_index(self) -> int:
+        """Return the index of the active strategy in `available_strategies`.
+
+        Strategies are compared by concrete class. This allows the engine to be
+        created with one `ConwayEvolutionStrategy` instance while the app owns
+        another `ConwayEvolutionStrategy` instance in its selectable list.
+        """
+        current_strategy_type = type(self.engine.strategy)
+
+        for index, strategy in enumerate(self.available_strategies):
+            if type(strategy) is current_strategy_type:
+                return index
+
+        return -1
+
+    def _create_default_strategies(self) -> list[EvolutionStrategy]:
+        """Create the default strategy list available in the UI."""
+        return [
+            ConwayEvolutionStrategy(),
+            HighLifeEvolutionStrategy(),
+        ]
 
     def stop(self) -> None:
         """Mark the application as no longer running."""
@@ -128,9 +191,13 @@ def create_default_app() -> GameOfLifeApp:
     grid, engine, strategy, observers, and app context.
     """
     grid = Grid(width=config.GRID_COLUMNS, height=config.GRID_ROWS)
+    available_strategies: list[EvolutionStrategy] = [
+        ConwayEvolutionStrategy(),
+        HighLifeEvolutionStrategy(),
+    ]
     engine = GameEngine(
         grid=grid,
-        strategy=ConwayEvolutionStrategy(),
+        strategy=available_strategies[0],
     )
     summary = SimulationSummaryObserver()
 
@@ -143,6 +210,7 @@ def create_default_app() -> GameOfLifeApp:
         evolution_interval=config.EVOLUTION_INTERVAL,
         random_alive_probability=config.RANDOM_ALIVE_PROBABILITY,
         summary=summary,
+        available_strategies=available_strategies,
     )
 
 

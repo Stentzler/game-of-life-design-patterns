@@ -10,7 +10,7 @@ from game_of_life.states import (
     SimulationAction,
     SimulationCommand,
 )
-from game_of_life.strategies import ConwayEvolutionStrategy
+from game_of_life.strategies import ConwayEvolutionStrategy, HighLifeEvolutionStrategy
 
 
 def create_app(evolution_interval: float = 1.0) -> GameOfLifeApp:
@@ -61,6 +61,14 @@ def test_editing_state_can_start_running_state() -> None:
     assert isinstance(app.current_state, RunningState)
 
 
+def test_editing_state_can_switch_strategy() -> None:
+    app = create_app()
+
+    app.handle_event(SimulationCommand(SimulationAction.SWITCH_STRATEGY))
+
+    assert isinstance(app.engine.strategy, HighLifeEvolutionStrategy)
+
+
 def test_running_state_advances_after_interval() -> None:
     app = create_app(evolution_interval=1.0)
     app.handle_event(SimulationCommand(SimulationAction.START))
@@ -85,6 +93,15 @@ def test_running_state_ignores_cell_toggle() -> None:
     )
 
     assert not app.engine.grid.is_alive(0, 0)
+
+
+def test_running_state_ignores_strategy_switch() -> None:
+    app = create_app()
+    app.handle_event(SimulationCommand(SimulationAction.START))
+
+    app.handle_event(SimulationCommand(SimulationAction.SWITCH_STRATEGY))
+
+    assert isinstance(app.engine.strategy, ConwayEvolutionStrategy)
 
 
 def test_running_can_pause_and_paused_can_resume() -> None:

@@ -29,10 +29,10 @@ class PausedState(SimulationState):
         All other commands are ignored because paused mode is locked.
         """
         if command.action == SimulationAction.RESUME:
-            # Local import avoids circular imports between concrete states.
-            from game_of_life.states.running import RunningState
-
-            context.change_state(RunningState(evolution_interval=context.evolution_interval))
+            next_state = context.state_factory.create_running(
+                evolution_interval=context.evolution_interval
+            )
+            context.change_state(next_state)
 
     def update(self, context: StateContext, delta_time: float) -> None:
         """Do nothing while paused.

@@ -53,17 +53,11 @@ class RunningState(SimulationState):
         active simulation.
         """
         if command.action == SimulationAction.PAUSE:
-            # Local import avoids circular imports between concrete states.
-            from game_of_life.states.paused import PausedState
-
-            context.change_state(PausedState())
+            context.change_state(context.state_factory.create_paused())
             return
 
         if command.action == SimulationAction.EDIT:
-            # Local import avoids circular imports between concrete states.
-            from game_of_life.states.editing import EditingState
-
-            context.change_state(EditingState())
+            context.change_state(context.state_factory.create_editing())
 
     def update(self, context: StateContext, delta_time: float) -> None:
         """Advance generations when enough time has passed.
