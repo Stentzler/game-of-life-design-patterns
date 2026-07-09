@@ -1,10 +1,10 @@
-from game_of_life.observers.base import Observer, Subject
-from game_of_life.observers.console_logger import ConsoleLoggingObserver
-from game_of_life.observers.simulation_summary import SimulationSummaryObserver
+from game_of_life.observers.base import Publisher, Subscriber
+from game_of_life.observers.console_logger import ConsoleLoggingSubscriber
+from game_of_life.observers.simulation_summary import SimulationSummarySubscriber
 
 __all__ = [
-    "ConsoleLoggingObserver",
-    "Observer",
-    "SimulationSummaryObserver",
-    "Subject",
+    "ConsoleLoggingSubscriber",
+    "Publisher",
+    "SimulationSummarySubscriber",
+    "Subscriber",
 ]

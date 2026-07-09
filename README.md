@@ -38,18 +38,18 @@ next_cells = strategy.calculate_next_state(grid)
 
 This lets the app replace the evolution algorithm without rewriting the engine.
 
-### Observer
+### Publisher / Subscriber
 
-`GameEngine` is a `Subject[GameEvent]`. It publishes events when the simulation
-changes.
+`GameEngine` is a `Publisher[GameEvent]`. It publishes events when the
+simulation changes.
 
-Current observers:
+Current subscribers:
 
-- `SimulationSummaryObserver`: keeps the latest generation/cell summary.
-- `ConsoleLoggingObserver`: logs engine events through Python logging.
+- `SimulationSummarySubscriber`: keeps the latest generation/cell summary.
+- `ConsoleLoggingSubscriber`: logs engine events through Python logging.
 
-The engine only knows the `Observer[GameEvent]` interface, not concrete observer
-classes.
+The engine only knows the `Subscriber[GameEvent]` interface, not concrete
+subscriber classes.
 
 ### State
 
@@ -123,7 +123,7 @@ src/game_of_life/
 ## Diagrams
 
 - [Class diagram](docs/class_diagram.md)
-- [Observer diagram](docs/observer_diagram.md)
+- [Publisher/subscriber diagram](docs/observer_diagram.md)
 - [State diagram](docs/state_diagram.md)
 
 ## Install

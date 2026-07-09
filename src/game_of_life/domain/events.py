@@ -8,8 +8,8 @@ class GameEventType(Enum):
     Each value describes something meaningful that happened in the simulation.
 
     Study note:
-        Event types let observers decide which notifications they care about.
-        For example, a summary observer may update on every event, while a
+        Event types let subscribers decide which notifications they care about.
+        For example, a summary subscriber may update on every event, while a
         console logger may log different messages for different event types.
     """
 
@@ -22,7 +22,7 @@ class GameEventType(Enum):
 
 @dataclass(frozen=True)
 class GameEvent:
-    """Describe one notification sent from the game engine to observers.
+    """Describe one notification sent from the game engine to subscribers.
 
     Args:
         event_type: Kind of event that happened.
@@ -32,12 +32,13 @@ class GameEvent:
         strategy_name: Name of the strategy currently used by the engine.
 
     Study note:
-        This object is the payload of the Observer pattern in this project.
-        Instead of calling observers with several loose arguments, the engine
+        This object is the payload of the publisher/subscriber event flow in
+        this project. Instead of calling subscribers with several loose
+        arguments, the engine
         sends a single object that groups the notification data.
 
         The dataclass is frozen because events should be snapshots. Once an
-        event is published, observers should not mutate it.
+        event is published, subscribers should not mutate it.
     """
 
     event_type: GameEventType

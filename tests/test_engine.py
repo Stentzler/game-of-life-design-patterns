@@ -3,11 +3,11 @@ import numpy as np
 from game_of_life.domain.engine import GameEngine
 from game_of_life.domain.events import GameEvent, GameEventType
 from game_of_life.domain.grid import Grid
-from game_of_life.observers import Observer, SimulationSummaryObserver
+from game_of_life.observers import Subscriber, SimulationSummarySubscriber
 from game_of_life.strategies import ConwayEvolutionStrategy, HighLifeEvolutionStrategy
 
 
-class EventCollector(Observer[GameEvent]):
+class EventCollector(Subscriber[GameEvent]):
     def __init__(self) -> None:
         self.events: list[GameEvent] = []
 
@@ -62,13 +62,13 @@ def test_replace_strategy_changes_future_strategy() -> None:
     assert isinstance(engine.strategy, HighLifeEvolutionStrategy)
 
 
-def test_engine_notifies_attached_observers() -> None:
+def test_engine_publishes_events_to_subscribers() -> None:
     engine = create_blinker_engine()
     collector = EventCollector()
-    summary = SimulationSummaryObserver()
+    summary = SimulationSummarySubscriber()
 
-    engine.attach(collector)
-    engine.attach(summary)
+    engine.subscribe(collector)
+    engine.subscribe(summary)
     engine.next_generation()
 
     assert collector.events[-1].event_type == GameEventType.GENERATION_ADVANCED
@@ -84,7 +84,7 @@ def test_engine_edit_operations_publish_events() -> None:
         strategy=ConwayEvolutionStrategy(),
     )
     collector = EventCollector()
-    engine.attach(collector)
+    engine.subscribe(collector)
 
     engine.toggle_cell(0, 0)
     engine.clear_grid()

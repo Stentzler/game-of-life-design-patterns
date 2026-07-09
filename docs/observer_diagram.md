@@ -1,26 +1,26 @@
 ```mermaid
 classDiagram
-    class Subject {
+    class Publisher {
         <<interface>>
-        +attach(observer)
-        +detach(observer)
-        +notify(event)
+        +subscribe(subscriber)
+        +unsubscribe(subscriber)
+        +publish(event)
     }
 
-    class Observer {
+    class Subscriber {
         <<interface>>
         +update(event)
     }
 
     class GameEngine {
-        -observers
+        -subscribers
         +next_generation()
         +toggle_cell()
         +clear_grid()
         +randomize_grid()
-        +attach(observer)
-        +detach(observer)
-        +notify(event)
+        +subscribe(subscriber)
+        +unsubscribe(subscriber)
+        +publish(event)
     }
 
     class GameEvent {
@@ -40,17 +40,17 @@ classDiagram
         GRID_RANDOMIZED
     }
 
-    class SimulationSummaryObserver {
+    class SimulationSummarySubscriber {
     }
 
-    class ConsoleLoggingObserver {
+    class ConsoleLoggingSubscriber {
     }
 
-    Subject <|-- GameEngine : implements
-    Observer <|-- SimulationSummaryObserver : implements
-    Observer <|-- ConsoleLoggingObserver : implements
-    GameEngine --> Observer : notifies
+    Publisher <|-- GameEngine : implements
+    Subscriber <|-- SimulationSummarySubscriber : implements
+    Subscriber <|-- ConsoleLoggingSubscriber : implements
+    GameEngine --> Subscriber : publishes to
     GameEngine --> GameEvent : creates
     GameEvent --> GameEventType : has type
-    Observer --> GameEvent : receives
+    Subscriber --> GameEvent : receives
 ```

@@ -1,28 +1,29 @@
 from game_of_life.domain.events import GameEvent
-from game_of_life.observers.base import Observer
+from game_of_life.observers.base import Subscriber
 
 
-class SimulationSummaryObserver(Observer[GameEvent]):
+class SimulationSummarySubscriber(Subscriber[GameEvent]):
     """Keep the latest simulation summary from game events.
 
-    `SimulationSummaryObserver` is a concrete Observer. It listens to
+    `SimulationSummarySubscriber` is a concrete subscriber. It listens to
     `GameEvent` notifications and stores the latest known state summary.
 
     The engine does not need to know that this class exists. The engine only
-    calls `observer.update(event)`. This class decides what to do with the event.
+    calls `subscriber.update(event)`. This class decides what to do with the
+    event.
 
     Study note:
-        This observer demonstrates a useful reason to apply the Observer
-        pattern: a current summary is a reaction to simulation changes, but it
-        is not part of the evolution algorithm itself.
+        This subscriber demonstrates a useful reason to use publisher/subscriber
+        event flow: a current summary is a reaction to simulation changes, but
+        it is not part of the evolution algorithm itself.
     """
 
     def __init__(self) -> None:
-        """Create an empty simulation summary observer.
+        """Create an empty simulation summary subscriber.
 
         Before the first event arrives, all values are initialized to zero.
-        After the engine notifies this observer, these values mirror the latest
-        event snapshot.
+        After the engine publishes to this subscriber, these values mirror the
+        latest event snapshot.
         """
         self.generation = 0
         self.living_cells = 0
@@ -37,7 +38,7 @@ class SimulationSummaryObserver(Observer[GameEvent]):
 
         Study note:
             This method does not ask the engine for data. It uses only the event
-            payload. That keeps the observer focused and keeps coupling low.
+            payload. That keeps the subscriber focused and keeps coupling low.
         """
         total_cells = event.living_cells + event.dead_cells
 

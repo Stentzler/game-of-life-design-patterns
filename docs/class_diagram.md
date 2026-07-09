@@ -46,15 +46,15 @@ classDiagram
         -grid
         -strategy
         -generation
-        -observers
+        -subscribers
         +next_generation()
         +replace_strategy(strategy)
         +toggle_cell(x, y)
         +clear_grid()
         +randomize_grid(alive_probability)
-        +attach(observer)
-        +detach(observer)
-        +notify(event)
+        +subscribe(subscriber)
+        +unsubscribe(subscriber)
+        +publish(event)
     }
 
     class Grid {
@@ -76,14 +76,14 @@ classDiagram
     class ConwayEvolutionStrategy
     class HighLifeEvolutionStrategy
 
-    class Subject {
+    class Publisher {
         <<interface>>
-        +attach(observer)
-        +detach(observer)
-        +notify(event)
+        +subscribe(subscriber)
+        +unsubscribe(subscriber)
+        +publish(event)
     }
 
-    class Observer {
+    class Subscriber {
         <<interface>>
         +update(event)
     }
@@ -96,12 +96,12 @@ classDiagram
         +strategy_name
     }
 
-    class SimulationSummaryObserver
-    class ConsoleLoggingObserver
+    class SimulationSummarySubscriber
+    class ConsoleLoggingSubscriber
 
     GameOfLifeApp --> GameEngine : owns
     GameOfLifeApp --> SimulationState : current state
-    GameOfLifeApp --> SimulationSummaryObserver : reads summary
+    GameOfLifeApp --> SimulationSummarySubscriber : reads summary
     GameOfLifeApp --> InputController : uses in run()
     GameOfLifeApp --> PygameRenderer : uses in run()
 
@@ -113,16 +113,16 @@ classDiagram
     SimulationState <|-- RunningState : implements
     SimulationState <|-- PausedState : implements
 
-    Subject <|-- GameEngine : implements
+    Publisher <|-- GameEngine : implements
     GameEngine --> Grid : owns
     GameEngine --> EvolutionStrategy : uses
-    GameEngine --> Observer : notifies
+    GameEngine --> Subscriber : publishes to
     GameEngine --> GameEvent : creates
 
     EvolutionStrategy <|-- ConwayEvolutionStrategy : implements
     EvolutionStrategy <|-- HighLifeEvolutionStrategy : implements
 
-    Observer <|-- SimulationSummaryObserver : implements
-    Observer <|-- ConsoleLoggingObserver : implements
-    Observer --> GameEvent : receives
+    Subscriber <|-- SimulationSummarySubscriber : implements
+    Subscriber <|-- ConsoleLoggingSubscriber : implements
+    Subscriber --> GameEvent : receives
 ```

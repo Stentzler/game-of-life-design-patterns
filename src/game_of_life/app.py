@@ -3,7 +3,7 @@ import logging
 from game_of_life import config
 from game_of_life.domain.engine import GameEngine
 from game_of_life.domain.grid import Grid
-from game_of_life.observers import ConsoleLoggingObserver, SimulationSummaryObserver
+from game_of_life.observers import ConsoleLoggingSubscriber, SimulationSummarySubscriber
 from game_of_life.states.base import (
     SimulationAction,
     SimulationCommand,
@@ -39,7 +39,7 @@ class GameOfLifeApp:
         initial_state: SimulationState | None = None,
         evolution_interval: float = config.EVOLUTION_INTERVAL,
         random_alive_probability: float = config.RANDOM_ALIVE_PROBABILITY,
-        summary: SimulationSummaryObserver | None = None,
+        summary: SimulationSummarySubscriber | None = None,
         state_factory: StateFactory | None = None,
         available_strategies: list[EvolutionStrategy] | None = None,
     ):
@@ -52,8 +52,8 @@ class GameOfLifeApp:
                 starts in `EditingState`.
             evolution_interval: Seconds between generations while running.
             random_alive_probability: Probability used by the randomize button.
-            summary: Optional observer that stores the latest simulation summary
-                for the renderer.
+            summary: Optional subscriber that stores the latest simulation
+                summary for the renderer.
             state_factory: Optional factory used to create concrete application
                 states. If omitted, the default `SimulationStateFactory` is used.
             available_strategies: Ordered strategy objects available to the
@@ -200,7 +200,7 @@ def create_default_app() -> GameOfLifeApp:
     """Create a runnable application with default dependencies.
 
     This function is the composition root for the project: it wires together the
-    grid, engine, strategy, observers, and app context.
+    grid, engine, strategy, subscribers, and app context.
     """
     grid = Grid(width=config.GRID_COLUMNS, height=config.GRID_ROWS)
     available_strategies: list[EvolutionStrategy] = [
@@ -211,10 +211,10 @@ def create_default_app() -> GameOfLifeApp:
         grid=grid,
         strategy=available_strategies[0],
     )
-    summary = SimulationSummaryObserver()
+    summary = SimulationSummarySubscriber()
 
-    engine.attach(summary)
-    engine.attach(ConsoleLoggingObserver())
+    engine.subscribe(summary)
+    engine.subscribe(ConsoleLoggingSubscriber())
     engine.randomize_grid(config.RANDOM_ALIVE_PROBABILITY)
 
     return GameOfLifeApp(
