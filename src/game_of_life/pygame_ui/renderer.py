@@ -151,12 +151,14 @@ class PygameRenderer:
             f"Alive: {living_percentage:.2f}%",
         ]
 
-        x = 500
-        y = config.GRID_HEIGHT + 10
+        summary_width = 180
+        summary_right_margin = 12
+        summary_left = config.SCREEN_WIDTH - summary_right_margin - summary_width
+        y = config.GRID_HEIGHT + 5
 
         for line in lines:
             text = self.small_font.render(line, True, config.WHITE)
-            self.screen.blit(text, (x, y))
+            self.screen.blit(text, (summary_left, y))
             y += 15
 
     def _build_buttons(self, app: GameOfLifeApp) -> list[Button]:
@@ -164,7 +166,7 @@ class PygameRenderer:
         actions = self._actions_for_state(app)
         buttons: list[Button] = []
 
-        button_width = 88
+        button_width = 104
         button_height = 32
         spacing = 10
         x = 12
@@ -188,7 +190,7 @@ class PygameRenderer:
                 ("Next", SimulationAction.NEXT_GENERATION),
                 ("Random", SimulationAction.RANDOMIZE_GRID),
                 ("Clear", SimulationAction.CLEAR_GRID),
-                ("Strategy", SimulationAction.SWITCH_STRATEGY),
+                (f"Use {app.next_strategy_name}", SimulationAction.SWITCH_STRATEGY),
             ]
 
         if isinstance(app.current_state, RunningState):

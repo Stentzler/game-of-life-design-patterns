@@ -125,7 +125,15 @@ class GameOfLifeApp:
     @property
     def current_strategy_name(self) -> str:
         """Return a readable name for the active evolution strategy."""
-        return self.engine.strategy.__class__.__name__.replace("EvolutionStrategy", "")
+        return self._strategy_name(self.engine.strategy)
+
+    @property
+    def next_strategy_name(self) -> str:
+        """Return a readable name for the next selectable strategy."""
+        current_index = self._current_strategy_index()
+        next_index = (current_index + 1) % len(self.available_strategies)
+
+        return self._strategy_name(self.available_strategies[next_index])
 
     def _current_strategy_index(self) -> int:
         """Return the index of the active strategy in `available_strategies`.
@@ -141,6 +149,10 @@ class GameOfLifeApp:
                 return index
 
         return -1
+
+    def _strategy_name(self, strategy: EvolutionStrategy) -> str:
+        """Return the UI-friendly name for a strategy object."""
+        return strategy.__class__.__name__.replace("EvolutionStrategy", "")
 
     def _create_default_strategies(self) -> list[EvolutionStrategy]:
         """Create the default strategy list available in the UI."""
