@@ -14,6 +14,10 @@ classDiagram
 
     class GameEngine {
         -observers
+        +next_generation()
+        +toggle_cell()
+        +clear_grid()
+        +randomize_grid()
         +attach(observer)
         +detach(observer)
         +notify(event)
@@ -27,6 +31,15 @@ classDiagram
         +strategy_name
     }
 
+    class GameEventType {
+        <<enumeration>>
+        GENERATION_ADVANCED
+        STRATEGY_REPLACED
+        CELL_TOGGLED
+        GRID_CLEARED
+        GRID_RANDOMIZED
+    }
+
     class SimulationSummaryObserver {
     }
 
@@ -38,5 +51,6 @@ classDiagram
     Observer <|-- ConsoleLoggingObserver : implements
     GameEngine --> Observer : notifies
     GameEngine --> GameEvent : creates
+    GameEvent --> GameEventType : has type
     Observer --> GameEvent : receives
 ```

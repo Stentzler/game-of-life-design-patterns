@@ -50,4 +50,24 @@ class ConsoleLoggingObserver(Observer[GameEvent]):
             )
             return
 
+        if event.event_type == GameEventType.CELL_TOGGLED:
+            logger.info(
+                "Cell toggled. Living cells: %s. Dead cells: %s.",
+                event.living_cells,
+                event.dead_cells,
+            )
+            return
+
+        if event.event_type == GameEventType.GRID_CLEARED:
+            logger.info("Grid cleared.")
+            return
+
+        if event.event_type == GameEventType.GRID_RANDOMIZED:
+            logger.info(
+                "Grid randomized. Living cells: %s. Dead cells: %s.",
+                event.living_cells,
+                event.dead_cells,
+            )
+            return
+
         logger.info("Unhandled game event: %s.", event.event_type.value)

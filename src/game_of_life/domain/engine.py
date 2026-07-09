@@ -144,6 +144,31 @@ class GameEngine(Subject[GameEvent]):
         self.strategy = strategy
         self.notify(self._create_event(GameEventType.STRATEGY_REPLACED))
 
+    def toggle_cell(self, x: int, y: int) -> None:
+        """Toggle one cell and notify observers.
+
+        Study note:
+            Editing the grid through the engine keeps observer notifications
+            consistent. If states modified `grid` directly, observers such as
+            `SimulationSummaryObserver` would not know that the board changed.
+        """
+        self.grid.toggle_cell(x, y)
+        self.notify(self._create_event(GameEventType.CELL_TOGGLED))
+
+    def clear_grid(self) -> None:
+        """Clear the grid and notify observers."""
+        self.grid.clear()
+        self.notify(self._create_event(GameEventType.GRID_CLEARED))
+
+    def randomize_grid(self, alive_probability: float = 0.2) -> None:
+        """Randomize the grid and notify observers.
+
+        Args:
+            alive_probability: Probability that each cell becomes alive.
+        """
+        self.grid.randomize(alive_probability)
+        self.notify(self._create_event(GameEventType.GRID_RANDOMIZED))
+
     def _create_event(self, event_type: GameEventType) -> GameEvent:
         """Create a `GameEvent` snapshot from the current engine state.
 

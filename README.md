@@ -3,50 +3,72 @@
 This project refactors a small Pygame implementation of Conway's Game of Life
 to study design patterns in a practical codebase.
 
-The original version is kept in `game_of_life_001.py` as a reference. The new
-implementation is organized under `src/game_of_life/` so each responsibility has
-a clear place.
+The original version is kept in `game_of_life_001.py` as a reference. The
+refactored implementation lives under `src/game_of_life/`.
 
-## Architecture Overview
+## Architecture
 
 The project follows a simple Model-View-Controller-style structure:
 
-| Layer | Responsibility | Package |
+| Layer | Responsibility | Main files |
 | --- | --- | --- |
-| Model | Grid data, generations, and Game of Life rules | `domain/`, `strategies/` |
-| View | Drawing the grid, cells, controls, and statistics | `pygame_ui/renderer.py` |
-| Controller | Reading user input and delegating behavior | `pygame_ui/controller.py` |
-| Application | Connecting the model, view, controller, and current state | `app.py` |
+| Model / Domain | Grid data, generations, rules, events | `domain/`, `strategies/`, `observers/` |
+| View | Drawing cells, controls, and summary values | `pygame_ui/renderer.py` |
+| Controller | Translating Pygame input into app commands | `pygame_ui/controller.py` |
+| Application | Connecting engine, state, renderer, and controller | `app.py` |
 
-MVC is used here as an architectural guide. The design patterns are introduced
-inside that structure only where they solve a real coupling problem.
+The key rule is that Pygame stays in the UI layer. Domain classes such as
+`Grid`, `GameEngine`, and the strategies do not import Pygame.
 
 ## Design Patterns
 
 ### Strategy
 
-The evolution rules are moved out of the game loop and into interchangeable
-strategy classes.
+The evolution rules are implemented as interchangeable strategies:
 
-`GameEngine` will ask an `EvolutionStrategy` to calculate the next grid state.
-This lets us use Conway rules first and later add alternatives such as HighLife
-without changing the engine.
+- `EvolutionStrategy`
+- `ConwayEvolutionStrategy`
+- `HighLifeEvolutionStrategy`
 
-### State
+`GameEngine` does not know the details of Conway or HighLife. It only calls:
 
-The application behavior depends on whether the user is editing, running, or
-paused.
+```python
+next_cells = strategy.calculate_next_state(grid)
+```
 
-Instead of spreading mode checks across the code, the app will delegate input
-and update behavior to the current `SimulationState`.
+This lets the app replace the evolution algorithm without rewriting the engine.
 
 ### Observer
 
-The domain layer will publish events when the simulation changes.
+`GameEngine` is a `Subject[GameEvent]`. It publishes events when the simulation
+changes.
 
-Observers such as `SimulationSummaryObserver` and `ConsoleLoggingObserver` can
-react to those events without forcing `GameEngine` to know about summary views,
-logging, or future features.
+Current observers:
+
+- `SimulationSummaryObserver`: keeps the latest generation/cell summary.
+- `ConsoleLoggingObserver`: logs engine events through Python logging.
+
+The engine only knows the `Observer[GameEvent]` interface, not concrete observer
+classes.
+
+### State
+
+`GameOfLifeApp` owns the current `SimulationState`.
+
+Current states:
+
+- `EditingState`: stopped and editable.
+- `RunningState`: advances generations automatically.
+- `PausedState`: stopped and locked.
+
+The app delegates commands and update ticks to the current state:
+
+```python
+current_state.handle_event(app, command)
+current_state.update(app, delta_time)
+```
+
+This avoids spreading `if mode == ...` checks across the application.
 
 ## Project Structure
 
@@ -82,6 +104,70 @@ src/game_of_life/
 - [Observer diagram](docs/observer_diagram.md)
 - [State diagram](docs/state_diagram.md)
 
-## Implementation Order
+## Install
+
+Create and activate a virtual environment, then install the project in editable
+mode:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -e ".[dev]"
+```
+
+Runtime dependencies:
+
+- `numpy`
+- `pygame`
+
+Development dependency:
+
+- `pytest`
+
+## Run
+
+After installing the project:
+
+```bash
+python -m game_of_life.app
+```
+
+Without installing the project, use:
+
+```bash
+PYTHONPATH=src python -m game_of_life.app
+```
+
+## Controls
+
+Editing mode:
+
+- Click cells to toggle them.
+- `Start`: begin automatic evolution.
+- `Next`: advance one generation manually.
+- `Random`: randomize the grid.
+- `Clear`: clear all cells.
+
+Running mode:
+
+- `Pause`: pause the simulation.
+- `Edit`: return to editing mode.
+
+Paused mode:
+
+- `Resume`: continue running.
+
+## Tests
+
+Run the real test suite:
+
+```bash
+pytest
+```
+
+The root-level `test_*.py` files are manual learning playgrounds. They print
+step-by-step examples and can be deleted later.
+
+## Implementation Notes
 
 The implementation plan is tracked in [implementation.md](implementation.md).

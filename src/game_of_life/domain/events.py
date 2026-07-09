@@ -15,6 +15,9 @@ class GameEventType(Enum):
 
     GENERATION_ADVANCED = "generation_advanced"
     STRATEGY_REPLACED = "strategy_replaced"
+    CELL_TOGGLED = "cell_toggled"
+    GRID_CLEARED = "grid_cleared"
+    GRID_RANDOMIZED = "grid_randomized"
 
 
 @dataclass(frozen=True)
